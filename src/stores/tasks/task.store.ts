@@ -1,7 +1,9 @@
 import { StateCreator, create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 import { v4 as uuid } from "uuid";
+// import { produce } from "immer";
 import { Task, TaskStatus } from "../../interfaces";
+import { immer } from "zustand/middleware/immer";
 
 export interface TaskState {
   draggingTaskId?: string;
@@ -17,7 +19,7 @@ export interface TaskActions {
   addTask: (title: string, status: TaskStatus) => void;
 }
 
-const taskStore: StateCreator<TaskState & TaskActions, [["zustand/devtools", never]]> = (set, get) => ({
+const taskStore: StateCreator<TaskState & TaskActions, [["zustand/devtools", never]], [["zustand/immer", never]]> = (set, get) => ({
   draggingTaskId: undefined,
   tasks: {
     "1": {
@@ -62,8 +64,16 @@ const taskStore: StateCreator<TaskState & TaskActions, [["zustand/devtools", nev
     set({ draggingTaskId: undefined }, false, "removeDraggingTaskId");
   },
   changeTaskStatus: (taskId: string, status: TaskStatus) => {
-    const task = get().tasks[taskId];
-    set((state) => ({ tasks: { ...state.tasks, [taskId]: { ...task, status } } }), false, "changeTaskStatus");
+    const task = { ...get().tasks[taskId] };
+    task.status = status;
+    set(
+      (state) => {
+        state.tasks[taskId] = task;
+        return state;
+      },
+      false,
+      "changeTaskStatus"
+    );
   },
   onTaskDrop: (status: TaskStatus) => {
     const draggingTaskId = get().draggingTaskId;
@@ -78,16 +88,24 @@ const taskStore: StateCreator<TaskState & TaskActions, [["zustand/devtools", nev
       status,
     };
     set(
-      (state) => ({
-        tasks: {
-          ...state.tasks,
-          [newTask.id]: newTask,
-        },
-      }),
+      (state) => {
+        state.tasks[newTask.id] = newTask;
+        return state;
+      },
       false,
       "addTask"
     );
+    // require npm i immer
+    // set(
+    //   produce((state: TaskState) => {
+    //     state.tasks[newTask.id] = newTask;
+    //   }),
+    //   false,
+    //   "addTask"
+    // );
+    // forma nativa de zustand
+    // set((state) => ({ tasks: { ...state.tasks, [newTask.id]: newTask } }), false, "addTask");
   },
 });
 
-export const useTaskStore = create<TaskState & TaskActions>()(devtools(taskStore));
+export const useTaskStore = create<TaskState & TaskActions>()(devtools(persist(immer(taskStore), { name: "task-store" })));
