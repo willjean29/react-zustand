@@ -11,6 +11,12 @@ export const WeddingInvitationPage = () => {
   const guestCount = useWeddingBoundStore((state) => state.guestCount);
   const setGuestCount = useWeddingBoundStore((state) => state.setGuestCount);
 
+  const eventYYYYMMDD = useWeddingBoundStore((state) => state.eventYYYYMMDD());
+  const eventHHMM = useWeddingBoundStore((state) => state.eventHHMM());
+
+  const setEventDate = useWeddingBoundStore((state) => state.setEventDate);
+  const setEventTime = useWeddingBoundStore((state) => state.setEventTime);
+
   return (
     <>
       <h1>Invitación de Boda</h1>
@@ -66,13 +72,13 @@ export const WeddingInvitationPage = () => {
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <label className="mb-3 block text-base font-medium text-[#07074D]">Fecha de evento</label>
-                  <input type="date" name="eventDate" id="eventDate" />
+                  <input type="date" name="eventDate" id="eventDate" value={eventYYYYMMDD} onChange={(event) => setEventDate(event.target.value)} />
                 </div>
               </div>
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <label className="mb-3 block text-base font-medium text-[#07074D]">Hora del evento</label>
-                  <input type="time" name="eventTime" id="eventTime" />
+                  <input type="time" name="eventTime" id="eventTime" value={eventHHMM} onChange={(event) => setEventTime(event.target.value)} />
                 </div>
               </div>
             </div>
